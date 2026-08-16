@@ -30,7 +30,7 @@
 param(
   [string]$InstallDir = (Join-Path $env:USERPROFILE '.dsh-remote-access'),
   [int]$DshPort = 3080,
-  [int]$ProxyPort = 8080,
+  [int]$ProxyPort = 18080,
   [switch]$NoStartup
 )
 
@@ -118,3 +118,4 @@ Write-Host '  2. Restart DSH Web.'
 Write-Host '  3. Click "远程连接" in the sidebar and scan the "外出高速通道" QR code.'
 Write-Host ''
 Write-Host 'The QR codes auto-login; do not share the entry URL or the QR code publicly.'
+

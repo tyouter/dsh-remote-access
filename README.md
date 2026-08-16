@@ -22,7 +22,7 @@
       │ 1) Tailscale 专用网      2) Cloudflare 公网隧道
       ▼
 ┌──────────────────────────────────────────────┐
-│ Caddy 认证代理（本机 127.0.0.1:8080）          │
+│ Caddy 认证代理（本机 127.0.0.1:18080）         │
 │  - /enter/<token> 写入 cookie 后跳转          │
 │  - 带 cookie 的请求才允许反向代理             │
 │  - 强制改写 Host/Origin，避免 DSH 信任栅栏 403 │
@@ -123,7 +123,7 @@ DSH 插件通过环境变量读取同一目录：
 | 环境变量 | 默认值 | 说明 |
 |---|---|---|
 | `DSH_REMOTE_ACCESS_DIR` | `~/.dsh-remote-access` | 数据目录 |
-| `DSH_REMOTE_AUTH_PROXY` | `http://127.0.0.1:8080` | Caddy 认证代理地址 |
+| `DSH_REMOTE_AUTH_PROXY` | `http://127.0.0.1:18080` | Caddy 认证代理地址 |
 
 `install.ps1` 已自动写入这两个用户环境变量。
 

@@ -15,7 +15,7 @@
 param(
   [string]$InstallDir = (Join-Path $env:USERPROFILE '.dsh-remote-access'),
   [int]$DshPort = 3080,
-  [int]$ProxyPort = 8080
+  [int]$ProxyPort = 18080
 )
 
 $ErrorActionPreference = 'SilentlyContinue'
@@ -55,3 +55,4 @@ for ($i = 0; $i -lt 90; $i++) {
 }
 
 Write-Warning 'Cloudflare quick tunnel URL was not observed within 3 minutes.'
+
