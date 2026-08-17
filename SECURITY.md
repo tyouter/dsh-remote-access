@@ -38,4 +38,5 @@ The examples in this repository use placeholders only.
   ```
 
 - Keep your operating system firewall enabled
+- Review the Caddy access log (`<data-dir>/logs/access.log`) for unexpected IPs or paths
 - Do not modify Caddy to skip the cookie check unless you add an equivalent authentication layer

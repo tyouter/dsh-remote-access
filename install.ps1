@@ -66,7 +66,19 @@ Set-Content -Path $tokenFile -Value $token -Encoding ASCII
 
 Write-Host '[3/5] Writing Caddy auth proxy config...'
 $caddyFile = @"
+{
+    log remote-access {
+        output file $logDir\access.log {
+            roll_size 10MiB
+            roll_keep 5
+        }
+        format json
+    }
+}
+
 :$ProxyPort {
+    log remote-access
+
     @enter path /enter-$token
     header @enter Set-Cookie "dsh_auth=1; Path=/; HttpOnly; SameSite=Lax"
     redir @enter / 302

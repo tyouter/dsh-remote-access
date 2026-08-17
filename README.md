@@ -195,6 +195,40 @@ tailscale serve --bg --https=443 http://127.0.0.1:<ProxyPort>
 
 ---
 
+## 访问日志
+
+Caddy 默认把每次请求写入：
+
+```text
+<数据目录>\logs\access.log
+```
+
+JSON 格式，10 MiB 自动滚动，保留 5 份。日志包含：
+
+- 访问时间、状态码、路径、耗时
+- Cloudflare 提供的真实访问者 IP 和国家
+- User-Agent / Referer
+- 请求来源是否认证成功
+
+**Cookie 内容会被 Caddy 自动脱敏为 `REDACTED`，不会写进日志。**
+
+快速查看最近 20 条：
+
+```powershell
+Get-Content ~\.dsh-remote-access\logs\access.log -Tail 20
+```
+
+如果你看到非自己设备的 IP / UA / 异常路径，请立即运行：
+
+```powershell
+.\uninstall.ps1 -RemoveData
+.\install.ps1
+```
+
+以作废旧 token。
+
+---
+
 ## 常见问题
 
 ### 二维码能扫，但页面打不开
