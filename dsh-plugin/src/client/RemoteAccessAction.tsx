@@ -53,6 +53,17 @@ export function RemoteAccessAction({ wide }: RemoteAccessActionProps) {
   const [error, setError] = useState<string | null>(null)
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null)
   const [cloudQrDataUrl, setCloudQrDataUrl] = useState<string | null>(null)
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null)
+
+  const copyUrl = useCallback(async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedUrl(url)
+      window.setTimeout(() => setCopiedUrl((current) => current === url ? null : current), 2000)
+    } catch {
+      // Clipboard may be unavailable in insecure contexts; the QR remains usable.
+    }
+  }, [])
 
   const applyStatus = useCallback(async (data: RemoteStatus) => {
     setStatus(data)
@@ -161,16 +172,22 @@ export function RemoteAccessAction({ wide }: RemoteAccessActionProps) {
 
               {(qrDataUrl !== null || cloudQrDataUrl !== null) && (
                 <div className={css.qrGrid}>
-                  {qrDataUrl !== null && (
+                  {qrDataUrl !== null && status.remoteUrl !== undefined && (
                     <div className={css.qrCard}>
                       <p className={css.qrLabel}>Tailscale 通道</p>
                       <img className={css.qr} src={qrDataUrl} alt="Tailscale 通道二维码" />
+                      <button type="button" className={css.copyButton} onClick={() => void copyUrl(status.remoteUrl!)}>
+                        {copiedUrl === status.remoteUrl ? '已复制' : '复制链接'}
+                      </button>
                     </div>
                   )}
                   {cloudQrDataUrl !== null && status.cloud?.url !== undefined && (
                     <div className={css.qrCard}>
                       <p className={css.qrLabel}>外出高速通道</p>
                       <img className={css.qr} src={cloudQrDataUrl} alt="外出高速通道二维码" />
+                      <button type="button" className={css.copyButton} onClick={() => void copyUrl(status.cloud!.url!)}>
+                        {copiedUrl === status.cloud.url ? '已复制' : '复制链接'}
+                      </button>
                     </div>
                   )}
                 </div>
