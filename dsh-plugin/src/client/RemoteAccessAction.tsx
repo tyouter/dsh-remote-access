@@ -33,9 +33,11 @@ interface RemoteStatus {
     localUrl: string
   }
   remoteUrl?: string
+  remoteAuthUrl?: string
   cloud?: {
     available: boolean
     url?: string
+    authUrl?: string
   }
 }
 
@@ -176,8 +178,8 @@ export function RemoteAccessAction({ wide }: RemoteAccessActionProps) {
                     <div className={css.qrCard}>
                       <p className={css.qrLabel}>Tailscale 通道</p>
                       <img className={css.qr} src={qrDataUrl} alt="Tailscale 通道二维码" />
-                      <button type="button" className={css.copyButton} onClick={() => void copyUrl(status.remoteUrl!)}>
-                        {copiedUrl === status.remoteUrl ? '已复制' : '复制链接'}
+                      <button type="button" className={css.copyButton} onClick={() => { const target = status.remoteAuthUrl ?? status.remoteUrl!; void copyUrl(target) }}>
+                        {copiedUrl === (status.remoteAuthUrl ?? status.remoteUrl) ? '已复制' : '复制链接'}
                       </button>
                     </div>
                   )}
@@ -185,8 +187,8 @@ export function RemoteAccessAction({ wide }: RemoteAccessActionProps) {
                     <div className={css.qrCard}>
                       <p className={css.qrLabel}>外出高速通道</p>
                       <img className={css.qr} src={cloudQrDataUrl} alt="外出高速通道二维码" />
-                      <button type="button" className={css.copyButton} onClick={() => void copyUrl(status.cloud!.url!)}>
-                        {copiedUrl === status.cloud.url ? '已复制' : '复制链接'}
+                      <button type="button" className={css.copyButton} onClick={() => { const target = status.cloud!.authUrl ?? status.cloud!.url!; void copyUrl(target) }}>
+                        {copiedUrl === (status.cloud!.authUrl ?? status.cloud!.url) ? '已复制' : '复制链接'}
                       </button>
                     </div>
                   )}
@@ -221,4 +223,5 @@ export function RemoteAccessAction({ wide }: RemoteAccessActionProps) {
     </>
   )
 }
+
 

@@ -46,9 +46,11 @@ interface RemoteStatus {
     localUrl: string
   }
   remoteUrl?: string
+  remoteAuthUrl?: string
   cloud?: {
     available: boolean
     url?: string
+    authUrl?: string
   }
 }
 
@@ -80,6 +82,40 @@ function cloudTunnelUrl(): string | undefined {
 
 function accessToken(): string | undefined {
   return readDataFile('access-token.txt')
+}
+
+interface AccessAccount {
+  username?: string
+  password?: string
+}
+
+function accessAccount(): AccessAccount {
+  const content = readDataFile('access-account.txt')
+  const result: AccessAccount = {}
+  if (content === undefined) return result
+  for (const line of content.split(/\r?\n/)) {
+    const match = /^(username|password)=(.+)$/.exec(line)
+    if (match !== null && match[1] !== undefined && match[2] !== undefined) { result[match[1] as 'username' | 'password'] = match[2] }
+  }
+  return result
+}
+
+/**
+ * Embed Basic Auth credentials into an entry URL for the copy-link buttons.
+ * The user asked for a link that a second device can open without typing the
+ * account/password; the QR codes themselves stay credential-free.
+ */
+function withAuth(url: string): string | undefined {
+  const account = accessAccount()
+  if (account.username === undefined || account.password === undefined) return undefined
+  try {
+    const parsed = new URL(url)
+    parsed.username = account.username
+    parsed.password = account.password
+    return parsed.toString()
+  } catch {
+    return undefined
+  }
 }
 
 /**
@@ -209,14 +245,23 @@ async function collectStatus(port: number): Promise<RemoteStatus> {
     : undefined
 
   const cloudUrl = cloudTunnelUrl()
+  const remoteAuthUrl = remoteUrl !== undefined ? withAuth(remoteUrl) : undefined
+  const cloudAuthUrl = cloudUrl !== undefined ? withAuth(cloudUrl) : undefined
 
   return {
     tailscale,
     serve: serveInfo,
     dsh: { port, localUrl },
     ...(remoteUrl !== undefined ? { remoteUrl } : {}),
+    ...(remoteAuthUrl !== undefined ? { remoteAuthUrl } : {}),
     ...(cloudUrl !== undefined
-      ? { cloud: { available: true, url: cloudUrl } }
+      ? {
+        cloud: {
+          available: true,
+          url: cloudUrl,
+          ...(cloudAuthUrl !== undefined ? { authUrl: cloudAuthUrl } : {}),
+        },
+      }
       : { cloud: { available: false } }),
   }
 }
@@ -257,3 +302,4 @@ export function apply(ctx: Context): void {
     }
   }, 'ui-remote-access: routes')
 }
+
