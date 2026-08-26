@@ -85,28 +85,33 @@ $caddyFile = @"
     }
 }
 
-http://127.0.0.1:$ProxyPort {
+http://:$ProxyPort {
     bind 127.0.0.1
     log remote-access
-    basic_auth {
-        $accountUser $accountHash
-    }
 
-    @enter path /enter-$token
-    header @enter Set-Cookie "dsh_auth=1; Path=/; HttpOnly; SameSite=Lax"
-    redir @enter / 302
-
-    @authed header Cookie *dsh_auth=1*
-    handle @authed {
-        encode zstd gzip
-        reverse_proxy 127.0.0.1:$DshPort {
-            header_up -Origin
-            header_up Host 127.0.0.1:$DshPort
+    route {
+        basic_auth {
+            $accountUser $accountHash
         }
-    }
 
-    handle {
-        respond "Unauthorized" 401
+        @enter path /enter-$token
+        handle @enter {
+            header Set-Cookie "dsh_auth=1; Path=/; HttpOnly; SameSite=Lax"
+            redir / 302
+        }
+
+        @authed header Cookie *dsh_auth=1*
+        handle @authed {
+            encode zstd gzip
+            reverse_proxy 127.0.0.1:$DshPort {
+                header_up -Origin
+                header_up Host 127.0.0.1:$DshPort
+            }
+        }
+
+        handle {
+            respond "Unauthorized" 401
+        }
     }
 }
 "@
