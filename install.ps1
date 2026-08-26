@@ -95,10 +95,8 @@ http://:$ProxyPort {
         }
 
         @enter path /enter-$token
-        handle @enter {
-            header Set-Cookie "dsh_auth=1; Path=/; HttpOnly; SameSite=Lax"
-            redir / 302
-        }
+        header @enter Set-Cookie "dsh_auth=1; Path=/; HttpOnly; SameSite=Lax"
+        redir @enter / 302
 
         @authed header Cookie *dsh_auth=1*
         handle @authed {
