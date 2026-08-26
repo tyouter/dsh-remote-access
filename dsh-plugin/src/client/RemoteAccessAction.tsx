@@ -213,7 +213,7 @@ export function RemoteAccessAction({ wide }: RemoteAccessActionProps) {
 
           <div className={css.hint}>
             <p>1. Tailscale 通道需要手机登录同一网络。</p>
-            <p>2. 外出高速通道扫码后自动进入，无需输入账号密码。</p>
+            <p>2. 外出高速通道首次扫码需输入账号密码，之后免输。</p>
             <p>3. DSH 本身仍只监听本机回环地址。</p>
           </div>
         </div>
@@ -221,3 +221,4 @@ export function RemoteAccessAction({ wide }: RemoteAccessActionProps) {
     </>
   )
 }
+

@@ -58,11 +58,20 @@ if (-not (Test-Path $cloudflaredExe)) {
 & $caddyExe version
 & $cloudflaredExe --version
 
-Write-Host '[2/5] Generating access token...'
+Write-Host '[2/5] Generating access token and account password...'
 $bytes = New-Object byte[] 16
 [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
 $token = ([System.BitConverter]::ToString($bytes) -replace '-', '').ToLowerInvariant()
 Set-Content -Path $tokenFile -Value $token -Encoding ASCII
+
+$accountUser = 'dsh'
+$passwordChars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789'
+$pwBytes = New-Object byte[] 16
+[System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($pwBytes)
+$accountPassword = (-join ($pwBytes | ForEach-Object { $passwordChars[$_ % $passwordChars.Length] }))
+$accountFile = Join-Path $InstallDir 'access-account.txt'
+Set-Content -Path $accountFile -Value "username=$accountUser`npassword=$accountPassword" -Encoding ASCII
+$accountHash = (& $caddyExe hash-password --plaintext $accountPassword).Trim()
 
 Write-Host '[3/5] Writing Caddy auth proxy config...'
 $caddyFile = @"
@@ -76,8 +85,12 @@ $caddyFile = @"
     }
 }
 
-:$ProxyPort {
+http://127.0.0.1:$ProxyPort {
+    bind 127.0.0.1
     log remote-access
+    basic_auth {
+        $accountUser $accountHash
+    }
 
     @enter path /enter-$token
     header @enter Set-Cookie "dsh_auth=1; Path=/; HttpOnly; SameSite=Lax"
@@ -124,10 +137,15 @@ Write-Host 'Installation complete.'
 Write-Host "  Data dir : $InstallDir"
 Write-Host "  Entry URL: $entryUrl"
 Write-Host ''
+Write-Host 'Credentials (first device login):'
+Write-Host "  Username : $accountUser"
+Write-Host "  Password : $accountPassword"
+Write-Host ''
 Write-Host 'Next steps:'
 Write-Host '  1. Run .\patch-dsh.ps1 against your deepseek-harness checkout (if not done yet).'
 Write-Host '  2. Restart DSH Web.'
 Write-Host '  3. Click "远程连接" in the sidebar and scan the "外出高速通道" QR code.'
+Write-Host '  4. On first login, enter the username and password above.'
 Write-Host ''
-Write-Host 'The QR codes auto-login; do not share the entry URL or the QR code publicly.'
+Write-Host 'Keep the entry URL and credentials private. Rotate both with uninstall.ps1 -RemoveData + install.ps1.'
 

@@ -6,7 +6,7 @@
 - 弹窗内展示两个小二维码：
   1. **Tailscale 通道**：同一 tailnet 内访问
   2. **外出高速通道**：Cloudflare 加密隧道，手机在外也能用
-- 扫码自动登录（cookie token），不用输入账号密码
+- 扫码 + 账号密码双重认证；首次登录后保持登录状态
 - DSH 本身仍只监听 `127.0.0.1`，不暴露公网端口
 
 > 本文所有示例均使用占位符，不含任何真实 IP、域名、密钥或 Token。
@@ -23,6 +23,7 @@
       ▼
 ┌──────────────────────────────────────────────┐
 │ Caddy 认证代理（本机 127.0.0.1:18080）         │
+│  - HTTP Basic Auth 账号密码                   │
 │  - /enter/<token> 写入 cookie 后跳转          │
 │  - 带 cookie 的请求才允许反向代理             │
 │  - 强制改写 Host/Origin，避免 DSH 信任栅栏 403 │
@@ -112,7 +113,8 @@ C:\Users\<你>\.dsh-remote-access\
 ├── bin\caddy.exe
 ├── bin\cloudflared.exe
 ├── caddy\Caddyfile
-├── access-token.txt      # 随机登录 token
+├── access-token.txt      # 随机入口 token
+├── access-account.txt    # 首次登录账号密码
 ├── tunnel-url.txt        # 当前隧道入口 URL（插件读取）
 ├── start-cloud-access.ps1
 └── logs\
@@ -181,17 +183,20 @@ tailscale serve --bg --https=443 http://127.0.0.1:<ProxyPort>
 
 ### 安全边界
 
-- Cloudflare 隧道是**公网可达**的随机地址，但只有 `/enter/<token>` 能写入登录 cookie
-- 未登录请求只返回 `401`
+- Cloudflare 隧道是**公网可达**的随机地址，但访问还需要：
+  1. `/enter/<token>` 正确入口路径
+  2. HTTP Basic Auth 账号密码
+- 只有同时通过“入口 token + 账号密码 + cookie”才可访问；未登录请求只返回 `401`
 - Caddy 会移除浏览器 `Origin` 并把 `Host` 改写为 `127.0.0.1:<DSH端口>`，所以 DSH 的 `/api` 信任栅栏正常工作
+- Caddy 只绑定 `127.0.0.1:<代理端口>`，局域网内其他机器无法直连
 - DSH 服务本身不监听 `0.0.0.0`
 - 隧道流量在手机与 Cloudflare 边缘之间为 TLS 加密；Cloudflare 到本机由 cloudflared 建立加密隧道
 
 ### 你需要做到
 
 - 不要把二维码或 `tunnel-url.txt` 的内容发给别人
-- 不要把 `access-token.txt` 提交到任何 Git 仓库
-- 更换设备或怀疑泄露时，删除数据目录并重跑 `install.ps1`
+- 不要把 `access-token.txt` / `access-account.txt` 提交到任何 Git 仓库
+- 更换设备或怀疑泄露时，删除数据目录并重跑 `install.ps1`（token 和密码都会重新生成）
 
 ---
 

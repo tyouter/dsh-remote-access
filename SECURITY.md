@@ -10,11 +10,11 @@ Instead, use GitHub's private vulnerability reporting feature on this repository
 This project never asks you to expose DSH itself to a public port.
 
 - DSH keeps binding to `127.0.0.1:<port>`
-- A local Caddy reverse proxy is the only component that forwards traffic to DSH
-- Caddy requires a cookie issued by `/enter/<random-token>`
+- A local Caddy reverse proxy binds to `127.0.0.1:<proxy-port>` only
+- Caddy requires HTTP Basic Auth credentials plus a cookie issued by `/enter/<random-token>`
 - Unauthenticated requests receive `401`
 - The Cloudflare quick tunnel is random and unlisted, but it is still reachable by anyone who obtains the URL
-- The access token is generated locally and stored under `~/.dsh-remote-access/`
+- The access token and account password are generated locally and stored under `~/.dsh-remote-access/`
 
 ## What to keep private
 
@@ -22,6 +22,7 @@ Never commit, paste, or share:
 
 - `tunnel-url.txt`
 - `access-token.txt`
+- `access-account.txt`
 - QR codes generated from the entry URL
 - Tailscale hostnames/IPs or any personal network details
 
